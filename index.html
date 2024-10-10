@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<style>
+div.tooltip {
+
+    position: absolute;			
+    text-align: center;			
+    				
+    padding: 2px;				
+    font: 12px sans-serif;		
+    background: lightsteelblue;	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;			
+
+}
+</style>
+<body>
+  <h1>NSF IUSE Awards in USA</h1>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-composite-projections/1.0.1/d3-composite-projections.min.js"></script>
+<script>
+var width = 1200,//960,
+    height = 900//500;
+
+var div = d3.select("body").append("div")	
+    .attr("class", "tooltip")				
+    .style("opacity", 0);
+
+var projection = d3.geoAlbersUsaTerritories();
+
+var path = d3.geoPath()
+    .projection(projection);
+
+var div_main = d3.select("body").append("div").attr("width", "100%");
+   var svg = div_main.append("svg")
+    .attr("id", "big")
+    .attr("width", "80%")
+    .attr("height", height)
+		.append("g")
+		.attr("transform", 	"translate(" + 40 + "," + 40 + ")");
+
+var t = d3.transition();
+d3.json("counties-10m.json", function(error, us) {
+  var us = topojson.feature(us, us.objects.states);
+  svg.selectAll(".region")
+      .data(us.features)
+      .enter()
+      .append("path")
+      .attr("class", "region")
+      .attr("d", path)
+      .style("fill","#85C1E9")
+      .style("stroke", "#5D6D7E")
+      .style("stroke-width", "0.5px");
+      
+
+  svg
+      .append("path")
+      .style("fill","none")
+      .style("stroke","#000")
+      .style("stroke-dasharray","5,5")
+      .attr("d", projection.getCompositionBorders());
+
+
+      d3.csv("./IUSE19-23_with_coordinates.csv", function(data) {
+		    console.log(data);
+       /* d3.csv("./IUSE19-23_with_coordinates.csv", function(orgs) {
+          console.log("file found");
+          const orgType= []
+          orgs.forEach(function(d) {
+            d.Organization = d.Organization 
+            d.control = d.control,
+            d.Type = d.Type
+            orgType.push(d.Type)
+          });*/
+          
+          //var uniqueType = d3.set(orgType).values();
+        
+        //  console.log(uniqueType);
+          //var OrgColor = d3.scaleOrdinal().domain(uniqueType).range(d3.schemeSet3);   
+          
+          var scale = d3.quantize(d3.interpolateHcl("#2A4858","#fafa6e"), 10)
+                          .concat(d3.quantize(d3.interpolateHcl("#f4e153", "#362142"), 10))
+                          .concat(d3.quantize(d3.interpolateHcl("#4d4193", "#17becf"), 10))
+                          .concat(d3.quantize(d3.interpolateHcl("#d66000", "#a9a9b4"), 10))
+                          .concat(d3.quantize(d3.interpolateHcl("#ffffbf","#e377c2"), 10))
+                          .concat(d3.quantize(d3.interpolateHcl("#ff7f0e","#bcbd22"), 10));
+          //d3.quantize(d3.interpolateHcl("#fafa6e", "#2A4858"), uniqueType.size);
+          /*console.log(scale);
+          var OrgColor = d3.scaleOrdinal().domain(uniqueType).range(scale);//.domain([0, uniqueType.size+1]).range();
+          console.log(OrgColor);*/
+
+         /* swatches({
+                            color: d3.scaleOrdinal(uniqueType, scale),
+                            columns: "280px",
+                            swatchSize: 20
+                          })*/
+
+         /* var small = div_main.append("svg")    // this needs to be outside of g
+                          .attr("id", "small")
+                          .attr("width", "20%")
+                          .attr("height", height)
+                          .append("g")
+		                      .attr("transform", 	"translate(" + -40 + "," + -80 + ")");
+          
+          small.selectAll("mydots")
+              .data(uniqueType)
+               .enter()
+                .append("circle")
+                .attr("cx", 100)
+                 .attr("cy", function(d,i){ return 100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+                .attr("r", 7)
+                .style("fill", "red")
+                //function(d){ return OrgColor(d)})  
+                
+                
+                small.append("svg").attr("id", "small").selectAll("mylabels")
+                          .data(uniqueType)
+                          .enter()
+                          .append("text")
+                            .attr("x", 120)
+                            .attr("y", function(d,i){ return 100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+                            .style("fill", function(d){ return OrgColor(d)})
+                            .text(function(d){ return d})
+                            .attr("text-anchor", "left")
+                            .style("alignment-baseline", "middle")   */ 
+                        
+          //var firstColour = interpolateViridisColours(0);
+          //var secondColour = interpolateViridisColours(1);
+          //var OrgColor = interpolateViridisColours(uniqueType.size+1);
+         
+
+          data.forEach(function(d) {
+              d.State = d.State,
+              d.latitude = parseFloat(d.latitude),
+              d.longitude = parseFloat(d.longitude),
+              d.AwardedAmount = parseFloat(d.AwardedAmountToDate),
+              d.PrincipalInvestigator = d.PrincipalInvestigator;
+          });
+
+
+         /* data.forEach(function(d) {
+            orgs.forEach(function(o) {
+                if (d.Organization === o.Organization) {
+                    d.OrganizationType = o.Type
+                    //console.log(d.OrganizationType)
+                    }
+              })
+          })*/
+
+var maxSize = d3.max(data, function(d) { return d.AwardedAmount; });
+var minSize = d3.min(data, function(d) { return d.AwardedAmount; });
+
+console.log("max"+maxSize);
+console.log("min:"+minSize);
+
+// size bubbles based on area
+var radiusScale =  d3.scaleLinear()
+  .domain([minSize, maxSize])
+  .range([5, 30])
+
+// add circles to svg
+svg.selectAll(".pin")
+  .data(data.sort(function(a, b) { return b.AwardedAmount - a.AwardedAmount; }))
+  .enter().append("circle", ".pin")
+  .attr("r", function(d) { return radiusScale(d.AwardedAmount);})
+  .attr("transform", function(d) {
+    return "translate(" + projection([
+      d.longitude,
+      d.latitude
+    ]) + ")";
+  })
+  .style("fill", "red")
+  //function(d){return OrgColor(d.OrganizationType) })//"red")     //This line needs to be modified ----- according to the 
+  .style("opacity", 0.3)
+  .on("mouseover", function(d) {		
+    div.transition().duration(500)
+          .style("opacity", 0.9)	      	
+          div.html(d.PrincipalInvestigator + "<br/>"  + d.Organization + "<br/> Amount:"  + d.AwardedAmount)	
+                .style("left", (d3.event.pageX) + "px")		
+                .style("top", (d3.event.pageY - 28) + "px");	
+            })					
+        .on("mouseout", function(d) {		
+          div.transition().duration(500)
+                .style("opacity", 0);	
+        });
+    });
+});
+
+//});      
+
+
+</script>
+</body>
+</html>
